@@ -1,5 +1,5 @@
 {
-  "name": "site-cli",
+  "name": "sitecli",
   "version": "1.0.0",
   "description": "criação de paginas ",
   "main": "index.js",
@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "bin": {
-      "cli": "./index.js"
+      "site-cli": "./index.js"
   },
   "dependencies": {
       "chalk": "^2.4.1",

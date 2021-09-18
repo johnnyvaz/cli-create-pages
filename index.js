@@ -1,40 +1,37 @@
 #!/usr/bin/env node
 const program = require("commander");
 const fs = require("fs");
-const path = require("path");
+// const path = require("path");
 const inquirer = require("inquirer");
 const chalk = require("chalk");
 
 const newCourse = (name, category) => {
   res = `---
-  title: ${name}
-  description: descrição curta
-  img: https://images.unsplash.com/photo-1580752300992-559f8e0734e0?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=634&q=80
-  alt: descrição da imagem
-  author:
-  name: Autor
-  tags:
-  - ${category}
-  ---
-  ## ${name}
-
-  descrição curta`
+title: ${name}
+description: descrição curta
+img: https://vazio
+alt: descrição da imagem
+author:
+name: Autor
+tags:
+- ${category}
+---
+## ${name}
+descrição curta`
 
   return res
 }
-const routerTemplate = `const express = require("express");
-const router = express.Router();
 
-router.get("/", (req, res, next) => {
-   try {
-     res.send("ok");
-   } catch (error) {
-     console.error(error);
-     next(error);
-   }
-});
-
-module.exports = router;`;
+// const newCategory = (name, description) => {
+//   res = `
+//   ---
+//     name: ${name}
+//     description: ${description}
+//     img: https://empty
+//   ---
+//   `
+//   return res
+// }
 
 const exist = (dir) => {
   try {
@@ -45,37 +42,44 @@ const exist = (dir) => {
   }
 };
 
+categorias = [ "moda", "administração", "mecanica" ]
+
 const mkdirp = (dir) => {
-  const dirname = path
-    .relative(".", path.normalize(dir))
-    .split(path.sep)
-    .filter(p => !!p);
-  dirname.forEach((d, idx) => {
-    const pathBuilder = dirname.slice(0, idx + 1).join(path.sep);
-    if (!exist(pathBuilder)) {
-      fs.mkdirSync(pathBuilder);
+  // const dirname = path
+  //   .relative(".", path.normalize(dir))
+  //   .split(path.sep)
+  //   .filter(p => !!p);
+  const dirname = "content/"
+    
+  // dirname.forEach((d, idx) => {
+    // const pathBuilder = dirname.slice(0, idx + 1).join(path.sep);
+    
+    if (!exist(dirname+dir)) {
+      
+      fs.mkdirSync(dirname+dir);
     }
-  });
+  // });
 };
 
-const makeTemplate = (type, name, directory) => {
-  mkdirp(directory);
+const makeTemplate = (type, name, category) => {
+  const fileName = name.replace(/ /g, "-")
+  mkdirp(category);
   if (type === "curso") {
-    const pathToFile = path.join(directory, `${name}.md`);
+    const pathToFile = `content/${category}/${fileName}.md`;
     if (exist(pathToFile)) {
-      console.error(chalk.bold.red("File Exists"));
+      console.error(chalk.bold.red("Registro já existe"));
     } else {
-      fs.writeFileSync(pathToFile, newCourse());
+      fs.writeFileSync(pathToFile, newCourse(name, category));
       console.log(chalk.green(pathToFile, `Curso ${name} Criado`));
     }
-  } else if (type === "categoria") {
-    const pathToFile = path.join(directory, `${name}.md`);
-    if (exist(pathToFile)) {
-      console.error(chalk.bold.red("Categoria já existe!"));
-    } else {
-      fs.writeFileSync(pathToFile, routerTemplate);
-      console.log(chalk.green(pathToFile, `Categoria ${name} Successfully`));
-    }
+  // } else if (type === "categoria") {
+  //   const pathToFile = path.join(category, `${name}.md`);
+  //   if (exist(pathToFile)) {
+  //     console.error(chalk.bold.red("Categoria já existe!"));
+  //   } else {
+  //     fs.writeFileSync(pathToFile, routerTemplate);
+  //     console.log(chalk.green(pathToFile, `Categoria ${name} Successfully`));
+  //   }
   } else {
     console.error(chalk.bold.red("Selecione umas das opções: Curso ou Categoria"));
   }
@@ -93,15 +97,16 @@ program
   .alias("tmpl")
   .option("-n, --name <name>", "Enter file Name", "index")
   .option("-d, --directory [path]", "Enter file Path", ".")
+  .option("-c, --category [category]", "Digite a categoria", categorias)
   .action((type, options) => {
-    makeTemplate(type, options.name, options.directory);
+    makeTemplate(type, options.name, options.category);
     triggered = true;
   });
 
 program
   .command("*", { noHelp: true })
   .action(() => {
-    console.log("Cannot find the command");
+    console.log("comando não encontrado!");
     program.help();
     triggered = true;
   });
@@ -114,26 +119,27 @@ if (!triggered) {
     type: "list",
     name: "type",
     message: "O que você vai criar agora?",
-    choices: ["curso", "categoria"],
+    choices: ["curso", "categoria(inativo)"],
   }, {
     type: "input",
     name: "name",
-    message: "Descrição",
-    default: "index",
-  }, {
-    type: "input",
-    name: "directory",
-    message: "Type File Directory",
-    default: ".",
-  }, {
+    message: "Nome",
+  }, 
+  {
+    type: "list",
+    name: "category",
+    message: "Selecione uma categoria:",
+    choices: categorias,
+  },
+  {
     type: "confirm",
     name: "confirm",
     message: "Creation? ",
   }])
     .then((answers) => {
       if (answers.confirm) {
-        makeTemplate(answers.type, answers.name, answers.directory);
-        console.log(chalk.rgb(128, 128, 128)("Terminal Closed"));
+        makeTemplate(answers.type, answers.name, answers.category);
+        console.log(chalk.rgb(128, 128, 128)("Programa finalizado"));
       }
     });
 }
